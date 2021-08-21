@@ -1,0 +1,48 @@
+.App {
+    padding: 0px;
+  }
+
+.logo {
+    height: 32px;
+    margin: 16px;
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+
+.ant-layout-sider {
+  background-color: #fff1b8;
+}
+
+.ant-layout-content {
+  background-color: #ffffff;
+  margin: 16px;
+}
+
+.list-label {
+  display: inline-block;
+  width: 75%;
+}
+
+.list-item {
+  padding: 20px;
+}
+
+.disable-list-item {
+  background-color: #EBECF0;
+  padding: 20px;
+}
+
+.site-layout {
+  background-color: #ffffff;
+}
+
+.ok-btn {
+  background-color:#b7eb8f;
+}
+.edit-btn {
+  background-color:#ffd591;
+}
+.delete-btn {
+  background-color: #ffa39e;
+  
+}
