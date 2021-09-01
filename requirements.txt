@@ -3,3 +3,4 @@ aiofiles==0.7.0
 pyyaml
 loguru
 uvicorn
+uvicorn[standard]
