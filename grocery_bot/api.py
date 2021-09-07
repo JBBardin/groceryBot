@@ -28,10 +28,11 @@ def startup_event():
     for blob in blobs:
         blob.download_to_filename(blob.name.replace("/", "\\"))
 
-    for f in filter(lambda f: f.endswith(".yaml"), os.listdir(cfg.SAVE_PATH)):
-        lists[re.sub(r"\.yaml$", "", f)] = GroceryList.load(
-            os.path.join(cfg.SAVE_PATH, f)
-        )
+    if not os.environ.get("RUN_ON_GCP", None):
+        for f in filter(lambda f: f.endswith(".yaml"), os.listdir(cfg.SAVE_PATH)):
+            lists[re.sub(r"\.yaml$", "", f)] = GroceryList.load(
+                os.path.join(cfg.SAVE_PATH, f)
+            )
 
 
 @app.on_event("shutdown")
