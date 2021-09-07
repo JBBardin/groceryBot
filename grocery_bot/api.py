@@ -5,6 +5,8 @@ import re
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from google.cloud import storage
+from loguru import logger
 
 from grocery_bot.liste import Item, GroceryList, ItemKind
 import grocery_bot.config as cfg
@@ -14,9 +16,18 @@ app.mount("/assets", StaticFiles(directory="assets"), name="static")
 
 lists = {}
 
+
+storage_client = storage.Client()
+
 # -------------- EVENTS --------------
 @app.on_event("startup")
 def startup_event():
+    blobs = storage_client.list_blobs(
+        os.environ.get("GCP_BUCKET_NAME"), prefix=f"{cfg.SAVE_PATH}/", delimiter="/"
+    )
+    for blob in blobs:
+        blob.download_to_filename(blob.name.replace("/", "\\"))
+
     for f in filter(lambda f: f.endswith(".yaml"), os.listdir(cfg.SAVE_PATH)):
         lists[re.sub(r"\.yaml$", "", f)] = GroceryList.load(
             os.path.join(cfg.SAVE_PATH, f)
@@ -25,8 +36,17 @@ def startup_event():
 
 @app.on_event("shutdown")
 def shutdown_event():
-    for l in lists:
+    bucket = storage_client.bucket(os.environ.get("GCP_BUCKET_NAME"))
+    logger.info("Shutting down!")
+    logger.debug(f"lists: {lists}")
+    for l in lists.values():
+        # local save
         l.save(cfg.SAVE_PATH)
+
+        # gcp save
+        blob = bucket.blob(l.save_path.replace("\\", "/"))
+        logger.info(f"Saving to GCP {bucket}, {blob} to {l.save_path}")
+        blob.upload_from_filename(l.save_path)
 
 
 # -------------- INDEX --------------
