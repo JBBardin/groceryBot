@@ -99,7 +99,6 @@ class GroceryList(BaseModel):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.save("data")
 
     def add(self, item: Item):
         if item.name in self._items_names:
@@ -153,15 +152,32 @@ class GroceryList(BaseModel):
         with open(self.save_path, "w") as f:
             yaml.dump(self.dict(), f, sort_keys=True, indent=4, allow_unicode=True)
 
+    def save_string(self, path):
+        if not self.save_path:
+            self.save_path = os.path.join(
+                path, f"{self.name.lower().replace(' ','_')}.yaml"
+            )
+        return yaml.dump(
+            self.dict(),
+            sort_keys=True,
+            indent=4,
+            allow_unicode=True,
+            encoding="latin-1",
+        )
+
     @staticmethod
     def load(path):
         logger.info(f"loading list {path}")
         with open(path, "r") as f:
-            dic = yaml.safe_load(f)
+            return GroceryList.load(f)
+
+    @staticmethod
+    def from_string(string):
+        dic = yaml.safe_load(string)
         g = GroceryList(name=dic["name"], save_path=dic["save_path"])
         g._items_names = set()
         kinds = ItemKind.list()
-        for k, v in dic["items"].items():
+        for v in dic["items"].values():
             g.add(
                 Item(
                     name=v["name"],

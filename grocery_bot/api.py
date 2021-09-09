@@ -22,13 +22,19 @@ storage_client = storage.Client()
 # -------------- EVENTS --------------
 @app.on_event("startup")
 def startup_event():
-    blobs = storage_client.list_blobs(
-        os.environ.get("GCP_BUCKET_NAME"), prefix=f"{cfg.SAVE_PATH}/", delimiter="/"
-    )
-    for blob in blobs:
-        blob.download_to_filename(blob.name.replace("/", "\\"))
+    if os.environ.get("USE_GCP", None):
+        blobs = storage_client.list_blobs(
+            os.environ.get("GCP_BUCKET_NAME"), prefix=f"{cfg.SAVE_PATH}/", delimiter="/"
+        )
+        for blob in blobs:
+            logger.debug(blob)
+            try:
+                l = GroceryList.from_string(blob.download_as_string().decode("latin-1"))
+                lists[l.name] = l
+            except:
+                pass
 
-    if not os.environ.get("RUN_ON_GCP", None):
+    else:
         for f in filter(lambda f: f.endswith(".yaml"), os.listdir(cfg.SAVE_PATH)):
             lists[re.sub(r"\.yaml$", "", f)] = GroceryList.load(
                 os.path.join(cfg.SAVE_PATH, f)
@@ -37,17 +43,24 @@ def startup_event():
 
 @app.on_event("shutdown")
 def shutdown_event():
-    bucket = storage_client.bucket(os.environ.get("GCP_BUCKET_NAME"))
+
     logger.info("Shutting down!")
     logger.debug(f"lists: {lists}")
-    for l in lists.values():
-        # local save
-        l.save(cfg.SAVE_PATH)
 
-        # gcp save
-        blob = bucket.blob(l.save_path.replace("\\", "/"))
-        logger.info(f"Saving to GCP {bucket}, {blob} to {l.save_path}")
-        blob.upload_from_filename(l.save_path)
+    if os.environ.get("USE_GCP", None):
+        bucket = storage_client.bucket(os.environ.get("GCP_BUCKET_NAME"))
+        logger.debug(lists.values())
+        for l in lists.values():
+            # gcp save
+            save_string = l.save_string(cfg.SAVE_PATH)
+            blob = bucket.blob(l.save_path.replace("\\", "/"))
+            logger.info(f"Saving to GCP {bucket}, {blob} to {l.save_path}")
+            blob.upload_from_string(save_string)
+
+    else:
+        for l in lists.values():
+            # local save
+            l.save(cfg.SAVE_PATH)
 
 
 # -------------- INDEX --------------
@@ -101,7 +114,6 @@ def read_item(list_name: str, item_name: str):
 def create_item(list_name: str, item: Item):
     l = get_list(list_name)
     l.add(item)
-    l.save(cfg.SAVE_PATH)
     return get_list(list_name).get_list()
 
 
@@ -109,7 +121,6 @@ def create_item(list_name: str, item: Item):
 def update_item(list_name: str, item: Item):
     l = get_list(list_name)
     l.update(item)
-    l.save(cfg.SAVE_PATH)
     return get_list(list_name).get_list()
 
 
@@ -117,7 +128,6 @@ def update_item(list_name: str, item: Item):
 def delete_item(list_name: str, item_name: str):
     l = get_list(list_name)
     l.delete(Item(name=item_name))
-    l.save(cfg.SAVE_PATH)
     return get_list(list_name).get_list()
 
 

@@ -35,4 +35,4 @@ entrypoint: uvicorn grocery_bot.api:app
 
 env_variables:
   GCP_BUCKET_NAME: "neon-lock-323609.appspot.com"
-  RUN_ON_GCP: "1"
+  USE_GCP: "1"
