@@ -17,50 +17,50 @@ app.mount("/assets", StaticFiles(directory="assets"), name="static")
 lists = {}
 
 
-storage_client = storage.Client()
+# storage_client = storage.Client()
 
-# -------------- EVENTS --------------
-@app.on_event("startup")
-def startup_event():
-    if os.environ.get("USE_GCP", None):
-        blobs = storage_client.list_blobs(
-            os.environ.get("GCP_BUCKET_NAME"), prefix=f"{cfg.SAVE_PATH}/", delimiter="/"
-        )
-        for blob in blobs:
-            logger.debug(blob)
-            try:
-                l = GroceryList.from_string(blob.download_as_string().decode("latin-1"))
-                lists[l.name] = l
-            except:
-                pass
+# # -------------- EVENTS --------------
+# @app.on_event("startup")
+# def startup_event():
+#     if os.environ.get("USE_GCP", None):
+#         blobs = storage_client.list_blobs(
+#             os.environ.get("GCP_BUCKET_NAME"), prefix=f"{cfg.SAVE_PATH}/", delimiter="/"
+#         )
+#         for blob in blobs:
+#             logger.debug(blob)
+#             try:
+#                 l = GroceryList.from_string(blob.download_as_string().decode("latin-1"))
+#                 lists[l.name] = l
+#             except:
+#                 pass
 
-    else:
-        for f in filter(lambda f: f.endswith(".yaml"), os.listdir(cfg.SAVE_PATH)):
-            lists[re.sub(r"\.yaml$", "", f)] = GroceryList.load(
-                os.path.join(cfg.SAVE_PATH, f)
-            )
+#     else:
+#         for f in filter(lambda f: f.endswith(".yaml"), os.listdir(cfg.SAVE_PATH)):
+#             lists[re.sub(r"\.yaml$", "", f)] = GroceryList.load(
+#                 os.path.join(cfg.SAVE_PATH, f)
+#             )
 
 
-@app.on_event("shutdown")
-def shutdown_event():
+# @app.on_event("shutdown")
+# def shutdown_event():
 
-    logger.info("Shutting down!")
-    logger.debug(f"lists: {lists}")
+#     logger.info("Shutting down!")
+#     logger.debug(f"lists: {lists}")
 
-    if os.environ.get("USE_GCP", None):
-        bucket = storage_client.bucket(os.environ.get("GCP_BUCKET_NAME"))
-        logger.debug(lists.values())
-        for l in lists.values():
-            # gcp save
-            save_string = l.save_string(cfg.SAVE_PATH)
-            blob = bucket.blob(l.save_path.replace("\\", "/"))
-            logger.info(f"Saving to GCP {bucket}, {blob} to {l.save_path}")
-            blob.upload_from_string(save_string)
+#     if os.environ.get("USE_GCP", None):
+#         bucket = storage_client.bucket(os.environ.get("GCP_BUCKET_NAME"))
+#         logger.debug(lists.values())
+#         for l in lists.values():
+#             # gcp save
+#             save_string = l.save_string(cfg.SAVE_PATH)
+#             blob = bucket.blob(l.save_path.replace("\\", "/"))
+#             logger.info(f"Saving to GCP {bucket}, {blob} to {l.save_path}")
+#             blob.upload_from_string(save_string)
 
-    else:
-        for l in lists.values():
-            # local save
-            l.save(cfg.SAVE_PATH)
+#     else:
+#         for l in lists.values():
+#             # local save
+#             l.save(cfg.SAVE_PATH)
 
 
 # -------------- INDEX --------------
