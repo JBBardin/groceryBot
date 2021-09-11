@@ -1,6 +1,6 @@
 var ingredientListing = [];
 
-fetch("http://127.0.0.1:8000/ingredient/listing")
+fetch(process.env.BASE_URL + "/ingredient/listing")
     .then(response => response.json())
     .then(data => ingredientListing = data.sort((a, b) => a.kind - b.kind));
 
@@ -22,7 +22,7 @@ class App extends React.Component {
 
     displayGroceryList(list) {
         console.log("fetching list named ", list.key)
-        fetch("http://127.0.0.1:8000/list/" + list.key)
+        fetch(process.env.BASE_URL + "/list/" + list.key)
             .then(response => response.json())
             .then(items => this.setState({
                 currentListe: {
@@ -34,7 +34,7 @@ class App extends React.Component {
 
     itemUpdateHandler(item) {
         if (item.is_deleted) {
-            fetch("http://127.0.0.1:8000/list/" + this.state.currentListe.name + "/items/" + item.name,
+            fetch(process.env.BASE_URL + "/list/" + this.state.currentListe.name + "/items/" + item.name,
                 { method: "DELETE" })
                 .then(response => response.json())
                 .then(items => this.setState({
@@ -44,7 +44,7 @@ class App extends React.Component {
                     }
                 }));
         } else if (item.is_created) {
-            fetch("http://127.0.0.1:8000/list/" + this.state.currentListe.name + "/items",
+            fetch(process.env.BASE_URL + "/list/" + this.state.currentListe.name + "/items",
                 { method: "POST", body: JSON.stringify(item), headers: { "Content-Type": "application/json" } })
                 .then(response => response.json())
                 .then(items => this.setState({
@@ -54,7 +54,7 @@ class App extends React.Component {
                     }
                 }));
         } else {
-            fetch("http://127.0.0.1:8000/list/" + this.state.currentListe.name + "/items",
+            fetch(process.env.BASE_URL + "/list/" + this.state.currentListe.name + "/items",
                 { method: "PUT", body: JSON.stringify(item), headers: { "Content-Type": "application/json" } })
                 .then(response => response.json())
                 .then(items => this.setState({
@@ -69,14 +69,14 @@ class App extends React.Component {
     listUpdateHandler(list) {
         if (list.is_deleted) {
             // TODO fix bug after deleteing a liste ((we tried to get the list items again))
-            fetch("http://127.0.0.1:8000/list/" + list.name, { method: "DELETE" })
+            fetch(process.env.BASE_URL + "/list/" + list.name, { method: "DELETE" })
                 .then(response => response.json())
                 .then(listnames => {
                     this.setState({ listnames: listnames });
                     this.displayGroceryList({ key: listnames[0] });
                 });
         } else if (list.is_created) {
-            fetch("http://127.0.0.1:8000/list", { method: "POST", body: JSON.stringify(list), headers: { "Content-Type": "application/json" } })
+            fetch(process.env.BASE_URL + "/list", { method: "POST", body: JSON.stringify(list), headers: { "Content-Type": "application/json" } })
                 .then(response => response.json())
                 .then(listnames => {
                     this.setState({ listnames });
@@ -85,7 +85,7 @@ class App extends React.Component {
     }
 
     componentDidMount() {
-        fetch("http://127.0.0.1:8000/list/names")
+        fetch(process.env.BASE_URL + "/list/names")
             .then(response => response.json())
             .then(listnames => {
                 this.setState({ listnames });

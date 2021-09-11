@@ -31,3 +31,4 @@ entrypoint: gunicorn -w 4 -k uvicorn.workers.UvicornWorker grocery_bot.api:app
 env_variables:
   GCP_BUCKET_NAME: "neon-lock-323609.appspot.com"
   USE_GCP: "1"
+  BASE_URL: "https://neon-lock-323609.ew.r.appspot.com"
