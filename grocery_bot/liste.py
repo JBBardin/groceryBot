@@ -8,8 +8,6 @@ import yaml
 from loguru import logger
 from google.cloud import storage
 
-import grocery_bot.config as cfg
-
 
 class ItemKind(Enum):
     PDT_ENTRETIEN = 1
