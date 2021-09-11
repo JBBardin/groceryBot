@@ -6,6 +6,9 @@ from enum import Enum
 from pydantic import BaseModel, Field, PrivateAttr
 import yaml
 from loguru import logger
+from google.cloud import storage
+
+import grocery_bot.config as cfg
 
 
 class ItemKind(Enum):
@@ -139,9 +142,15 @@ class GroceryList(BaseModel):
         return s + "\n".join([str(i) for i in self.get_list()])
 
     def clear(self):
-        if not self.save_path:
-            logger.info("Nothing to clear")
-        os.remove(self.save_path)
+        if os.environ.get("USE_GCP", None):
+            bucket = storage.Client().bucket(os.environ.get("GCP_BUCKET_NAME"))
+            blob = bucket.blob(l.save_path.replace("\\", "/"))
+            logger.info(f"Deleting from GCP {bucket}, {blob} to {l.save_path}")
+            blob.delete()
+        else:
+            if not self.save_path:
+                logger.info("Nothing to clear")
+            os.remove(self.save_path)
 
     def save(self, path):
         if not self.save_path:

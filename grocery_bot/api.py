@@ -41,12 +41,7 @@ def startup_event():
             )
 
 
-@app.on_event("shutdown")
-def shutdown_event():
-
-    logger.info("Shutting down!")
-    logger.debug(f"lists: {lists}")
-
+def save():
     if os.environ.get("USE_GCP", None):
         bucket = storage_client.bucket(os.environ.get("GCP_BUCKET_NAME"))
         logger.debug(lists.values())
@@ -61,6 +56,13 @@ def shutdown_event():
         for l in lists.values():
             # local save
             l.save(cfg.SAVE_PATH)
+
+
+@app.on_event("shutdown")
+def shutdown_event():
+    logger.info("Shutting down!")
+    logger.debug(f"lists: {lists}")
+    save()
 
 
 # -------------- INDEX --------------
@@ -92,6 +94,7 @@ def create_list(list_: GroceryList):
             f"Liste {list_.name} already exist, if you want to overrid it you should delete it first"
         )
     lists[list_.name] = list_
+    save()
     return read_lists_names()
 
 
@@ -114,6 +117,7 @@ def read_item(list_name: str, item_name: str):
 def create_item(list_name: str, item: Item):
     l = get_list(list_name)
     l.add(item)
+    save()
     return get_list(list_name).get_list()
 
 
@@ -121,6 +125,7 @@ def create_item(list_name: str, item: Item):
 def update_item(list_name: str, item: Item):
     l = get_list(list_name)
     l.update(item)
+    save()
     return get_list(list_name).get_list()
 
 
@@ -128,6 +133,7 @@ def update_item(list_name: str, item: Item):
 def delete_item(list_name: str, item_name: str):
     l = get_list(list_name)
     l.delete(Item(name=item_name))
+    save()
     return get_list(list_name).get_list()
 
 
