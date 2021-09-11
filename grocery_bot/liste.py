@@ -142,8 +142,8 @@ class GroceryList(BaseModel):
     def clear(self):
         if os.environ.get("USE_GCP", None):
             bucket = storage.Client().bucket(os.environ.get("GCP_BUCKET_NAME"))
-            blob = bucket.blob(l.save_path.replace("\\", "/"))
-            logger.info(f"Deleting from GCP {bucket}, {blob} to {l.save_path}")
+            blob = bucket.blob(self.save_path.replace("\\", "/"))
+            logger.info(f"Deleting from GCP {bucket}, {blob} to {self.save_path}")
             blob.delete()
         else:
             if not self.save_path:
