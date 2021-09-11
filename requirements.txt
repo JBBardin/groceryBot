@@ -5,3 +5,4 @@ loguru
 uvicorn
 uvicorn[standard]
 google-cloud-storage
+gunicorn

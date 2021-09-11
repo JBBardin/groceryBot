@@ -66,7 +66,7 @@ def shutdown_event():
 # -------------- INDEX --------------
 @app.get("/", response_class=HTMLResponse)
 def read_root():
-    with open("assets\index.html", "r") as f:
+    with open("assets/index.html", "r") as f:
         return HTMLResponse(content=f.read(), status_code=200)
 
 
